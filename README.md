@@ -33,3 +33,4 @@ And the schematic so far:
 ![Function generator](/img/func_gen_sch.jpg)
 
 I will create a PCB and box with all the connectors. I still have to improve the user interface and decide the final layout.
+Probably I will change the MCU by the ESP32-C3 module, depending on the number of GPIO pins needed.
