@@ -18,10 +18,14 @@ To test you should set the oscilloscope probes to 10X.
 
 The current system in the breadboard. With the rotary encoder the frequency can be adjusted. It sweeps each digit separately.  The potentiometer is for the amplitude adjustment. 
 
+
 Sine wave at 2.2 MHz:
+
 ![Function generator](/img/2_2MHz.jpg)
 
+
 Sine wave at 5 KHz:
+
 ![Function generator](/img/5khz.jpg)
 
 I will create a PCB and box with all the connectors. I still have to improve the user interface and decide the final layout.
