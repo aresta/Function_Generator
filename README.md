@@ -28,4 +28,8 @@ Sine wave at 5 KHz:
 
 ![Function generator](/img/5khz.jpg)
 
+And the schematic so far:
+
+![Function generator](/img/func_gen_sch.jpg)
+
 I will create a PCB and box with all the connectors. I still have to improve the user interface and decide the final layout.
