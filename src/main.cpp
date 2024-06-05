@@ -17,7 +17,7 @@ TFT_eSprite spr = TFT_eSprite(&tft);
 uint8_t wave_type = AD9833_SINE;
 
 uint32_t freq = 1000;
-uint8_t sweep_digit = 2; // from right
+uint8_t sweep_digit = 4; // from right
 
 AD9833 AD( AD9833_FNC, AD9833_DAT, AD9833_CLK);
 RotaryEncoder encoder( ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, RotaryEncoder::LatchMode::TWO03);
@@ -29,13 +29,18 @@ void setup(){
   PRINTD("Olakease!");
 
 	pinMode( ROTARY_ENCODER_BTN_PIN, INPUT_PULLUP);
-	pinMode( WAVE_TYPE_BTN, INPUT_PULLUP);
-	pinMode( FREQ_RANGE_BTN, INPUT_PULLUP);
+	pinMode( LEFT_BTN, INPUT_PULLUP);
+	pinMode( RIGHT_BTN, INPUT_PULLUP);
+	pinMode( WV_TYPE_BTN, INPUT_PULLUP);
+  pinMode( LED_BRD, OUTPUT);
 	attachInterrupt( ROTARY_ENCODER_BTN_PIN, encoder_BTN_ISR, FALLING);
 	attachInterrupt( ROTARY_ENCODER_A_PIN, encoder_checkPosition_ISR, FALLING);
 	attachInterrupt( ROTARY_ENCODER_B_PIN, encoder_checkPosition_ISR, FALLING);
-	attachInterrupt( WAVE_TYPE_BTN, wave_type_btn_ISR, FALLING);
-	attachInterrupt( FREQ_RANGE_BTN, freq_range_btn_ISR, FALLING);
+	attachInterrupt( LEFT_BTN, left_btn_ISR, FALLING);
+	attachInterrupt( RIGHT_BTN, right_btn_ISR, FALLING);
+	attachInterrupt( WV_TYPE_BTN, vw_type_btn_ISR, FALLING);
+
+  digitalWrite( LED_BRD, LOW);
 
   AD.begin();
   AD.setFrequency( freq);
@@ -57,10 +62,12 @@ void setup(){
 
 void adjust_sweep_digit(){
   uint8_t digits = floor(log10( freq)) + 1;
-  if( (freq >= 1000*1000 && sweep_digit < 4) || 
-    sweep_digit < 1 || sweep_digit > digits){
+  if(( freq >= 1000*1000 && sweep_digit < 4) || sweep_digit < 1 ){
     sweep_digit = digits;
+    return;
   }
+  if( sweep_digit > digits) sweep_digit = 1;
+  if( freq >= 1000*1000 && sweep_digit < 4) sweep_digit = 4;
 }
 
 int s = 0;
@@ -83,7 +90,8 @@ void loop(){
   {
     PRINTD2("encoder_direction:", encoder_direction);
     last_encoder_direction = millis();
-    freq += (( pow( 10, ( sweep_digit - 1))) * encoder_direction);
+    uint32_t step = (( pow( 10, ( sweep_digit - 1))) * encoder_direction);
+    freq -= step; //TODO: improve step down
     if( freq < 1){
       freq = 1;
       sweep_digit = 1;
@@ -96,15 +104,6 @@ void loop(){
 
   if( encoder_btn_pressed()){
     PRINTD("encoder_btn_pressed!");
-    sweep_digit--;
-    adjust_sweep_digit();
-    display_freq( freq, sweep_digit);
-    PRINTD2( "sweep_digit:", sweep_digit);
-  }
-
-  if( freq_range_btn_pressed){
-    PRINTD("freq_range_btn_pressed!");
-    freq_range_btn_pressed = false;
     if( millis() - freq_range_btn_last_time_pressed > 300){
       freq_range_btn_last_time_pressed = millis();
       if( freq < 1000000) freq *= 10;
@@ -116,9 +115,26 @@ void loop(){
     }
   }
 
-  if( wave_type_btn_pressed){
+  if( left_btn_pressed){
+    PRINTD("left_btn_pressed!");
+    sweep_digit++;
+    adjust_sweep_digit();
+    display_freq( freq, sweep_digit);
+    left_btn_pressed = false;
+    PRINTD2( "sweep_digit:", sweep_digit);
+  }
+
+  if( right_btn_pressed){
+    PRINTD("right_btn_pressed!");
+    sweep_digit--;
+    adjust_sweep_digit();
+    display_freq( freq, sweep_digit);
+    right_btn_pressed = false;
+    PRINTD2( "sweep_digit:", sweep_digit);
+  }
+
+  if( vw_type_btn_pressed){
     PRINTD("wave_type_btn_pressed!");
-    wave_type_btn_pressed = false;
     if( millis() - wave_type_btn_last_time_pressed > 300){
       wave_type_btn_last_time_pressed = millis();
       wave_type += 1;
@@ -127,6 +143,7 @@ void loop(){
       AD.setWave( wave_type);
       PRINTD2( "wave_type:", wave_type);
     }
+    vw_type_btn_pressed = false;
   }
 
 }

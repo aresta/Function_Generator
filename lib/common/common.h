@@ -8,8 +8,10 @@
 #define ROTARY_ENCODER_A_PIN 35
 #define ROTARY_ENCODER_B_PIN 33
 #define ROTARY_ENCODER_BTN_PIN 18
-#define WAVE_TYPE_BTN 39
-#define FREQ_RANGE_BTN 38
+#define LEFT_BTN 39
+#define RIGHT_BTN 38
+#define WV_TYPE_BTN 5
+#define LED_BRD 4
 
 #ifdef DEBUG_
 #define PRINTD( s) Serial.println( s)
