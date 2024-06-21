@@ -26,7 +26,8 @@ void setup(){
   #ifdef DEBUG_
     Serial.begin(115200);
   #endif
-  PRINTD("Olakease!");
+  delay(500); // wait for the display to init
+  PRINTD("Starting!");
 
 	pinMode( ROTARY_ENCODER_BTN_PIN, INPUT_PULLUP);
 	pinMode( LEFT_BTN, INPUT_PULLUP);
@@ -47,14 +48,15 @@ void setup(){
   AD.setWave( wave_type);
 
   tft.init();
+  delay(200);
   tft.setRotation(1);  // portrait
   tft.invertDisplay( true);
   tft.fillScreen( GRAYCLEAR);
-  spr.fillSprite( GRAYCLEAR);
   // 320x170
   // 10 + 300 + 10 = 320 wide
   // 10 + 70 + 10 + 70 + 10 = 170 high
   spr.createSprite( 300, 70);
+  spr.fillSprite( GRAYCLEAR);
 
   display_freq( freq, sweep_digit);
   display_wave_type( wave_type);
