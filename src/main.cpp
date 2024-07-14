@@ -26,7 +26,7 @@ void setup(){
   #ifdef DEBUG_
     Serial.begin(115200);
   #endif
-  delay(500); // wait for the display to init
+  delay(400); // wait for the display to init
   PRINTD("Starting!");
 
 	pinMode( ROTARY_ENCODER_BTN_PIN, INPUT_PULLUP);
@@ -48,7 +48,7 @@ void setup(){
   AD.setWave( wave_type);
 
   tft.init();
-  delay(200);
+  delay(100);
   tft.setRotation(1);  // portrait
   tft.invertDisplay( true);
   tft.fillScreen( GRAYCLEAR);
