@@ -1,4 +1,4 @@
-# Function Generator
+# Function Generator 5MHz
 
 Simple low power waveform generator based in the **AD9833 module**, capable of producing sine, triangular, and square wave outputs.
 An ESP32-S2 module controls the system with a rotary encoder, a potentiometer, some buttons and a rectangular 320x170 IPS display. It is powered with a USB-C connector. 
