@@ -30,13 +30,13 @@ Sine wave at 5 KHz:
 
 The schematic:
 
-![Function generator](/img/func_gen_sch.jpg)
+<img src="img/func_gen_sch.jpg" alt="func_gen_sch" style="width:500px;"/>
 
 And the PCB:
 
-![Function generator](/img/func_gen_pcb.jpg)
+<img src="img/func_gen_pcb.jpg" alt="func_gen_pcb" style="width:500px;"/>
 
 I have already mounted the PCB and it works.  It can be better arranged and reduced, and the software improved, but it's already fully functional.
 
-![Function generator](/img/function_generator_attiny.jpg)
+<img src="img/function_generator_attiny.jpg" alt="function_generator_attiny" style="width:500px;"/>
 
