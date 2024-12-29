@@ -1,17 +1,17 @@
 # Function Generator 5MHz
 
 Simple low power waveform generator based in the **AD9833 module**, capable of producing sine, triangular, and square wave outputs.
-An ESP32-S2 module controls the system with a rotary encoder, a potentiometer, some buttons and a rectangular 320x170 IPS display. It is powered with a USB-C connector. 
+An Attiny3224 IC controls the system with a rotary encoder, a potentiometer, some buttons and a small display. It is powered with a USB-C connector. 
 
 The frequency range goes from 1 Hz to 5 MHz and the amplitude can go from less than 100mV to 3.35V aproximately.
-Above 4 Mhz the maximum amplitude decreases to about 1.6 V, but there will be a '*boost*' button to double the gain.
+Above 4 Mhz the maximum amplitude decreases to about 1.6 V. There is a '*boost*' button to double the gain, and another one to reduce it to achieve waves with small amplitude.
 
 The sine wave looks good up to 5 MHz and then starts to show some distortion.
 
-The signal is amplified with the high speed **LMH6658 opamp**. It has a 140 MHz GBWP and a slew rate of 700 V/μs.  These parameters are key in the opamp selection, otherwise it won't be able to amplify much the signal above 500 KHz.
+The AD9833 module produces a signal with an amplitude of about 600mV. To amplify it we need a very fast opamp, the **LMH6658 opamp**. It has a 140 MHz GBWP and a slew rate of 700 V/μs. With we achive an amplitude of about 2.5V peak to peak. A *regular* opamp won't be able to amplify much the signal above 500 KHz.
 
-This is the breadboard protoype, with the opamp soldered on a small SOIC-8 adapter with the gain and decoupling components (resistors and capacitors) soldered directly to the pins, to avoid problems with the breadboard at relative high frequencies.
-To test you should set the oscilloscope probes to 10X.
+To test in a breadboard you should solder the opamp on a small SOIC-8 adapter, and solder the gain resistors and decoupling capacitors directly to the adapter pins, to avoid problems with the breadboard at relative high frequencies.
+And you should aslo set the oscilloscope probes to 10X.
 
 
 ![Function generator](/img/func_gen.jpg)
@@ -34,10 +34,9 @@ The schematic:
 
 And the PCB:
 
-![Function generator](/img/pcb.jpg)
+![Function generator](/img/func_gen_pcb.jpg)
 
-I have already mounted the PCB and it works. But sometimes I there is some strange behaviour with the display that I have to investigate.
+I have already mounted the PCB and it works.  It can be better arranged and reduced, and the software improved, but it's already fully functional.
 
-The user interface can still be improved.
+![Function generator](/img/function_generator_attiny.jpg)
 
-For the version probably I will change the MCU by an ESP32-C3 module or even an small Attiny new series MCU, depending on the number of GPIO pins needed.
