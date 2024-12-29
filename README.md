@@ -12,6 +12,10 @@ The sine wave looks good up to 5 MHz and then starts to show some distortion.
 
 The AD9833 module produces a signal with an amplitude of about 600mV. To amplify it we need a very fast opamp, the **LMH6658**. It has a 140 MHz GBWP and a slew rate of 700 V/μs. With it we achieve an amplitude of about 2.5V peak to peak. A *regular* opamp won't be able to amplify much the signal above 500 KHz.
 
+Sine wave at 2.2 MHz:
+
+![Function generator](/img/2_2MHz.jpg)
+
 To test in a breadboard you should solder the opamp on a small SOIC-8 adapter, and solder the gain resistors and decoupling capacitors directly in the adapter pins, to avoid problems with the breadboard at relative high frequencies.
 And you should aslo set the oscilloscope probes to 10X.
 
@@ -19,11 +23,6 @@ And you should aslo set the oscilloscope probes to 10X.
 ![Function generator](/img/func_gen.jpg)
 
 With the rotary encoder the frequency can be adjusted. It sweeps each digit separately.  The potentiometer is for the amplitude adjustment. 
-
-
-Sine wave at 2.2 MHz:
-
-![Function generator](/img/2_2MHz.jpg)
 
 
 Sine wave at 5 KHz:
