@@ -37,7 +37,7 @@ And the PCB:
 
 <img src="img/func_gen_pcb.jpg" alt="func_gen_pcb" style="width:500px;"/>
 
-The PCB could be reduced better and arranged better. The first version was using an ESP32, but with the Attiny is enough and simpler. The software could be also improved, but it's already fully functional.
+The PCB could be reduced and arranged better. The first version was using an ESP32, but with the Attiny is enough and simpler. The software could be also improved, but it's already fully functional.
 
 
 
