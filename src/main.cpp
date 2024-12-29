@@ -1,152 +1,114 @@
 #include <Arduino.h>
-#include <math.h>
-#include <RotaryEncoder.h>
-#include "common.h"
-#include "AD9833.h"
+#include <U8g2lib.h>
+#include <MD_AD9833.h>
+#include <SPI.h>
+#include "encoder.h"
+#include "buttons.h"
 #include "display.h"
-#include "userint.h"
 
-TFT_eSPI tft = TFT_eSPI();
-TFT_eSprite spr = TFT_eSprite(&tft);
+#define BAUDS 115200
+#define PIN_FSYNC PIN_PB3
 
-// AD9833_OFF            0
-// AD9833_SINE           1
-// AD9833_SQUARE1        2
-// AD9833_SQUARE2        3
-// AD9833_TRIANGLE       4
-uint8_t wave_type = AD9833_SINE;
+// 128x64
+U8G2_SH1106_128X64_NONAME_F_4W_HW_SPI u8g2( U8G2_R0, DISPLAY_CS, DISPLAY_DC);
+MD_AD9833	AD( PIN_FSYNC);
 
-uint32_t freq = 1000;
-uint8_t sweep_digit = 4; // from right
+void setup() {
+  _PROTECTED_WRITE( CLKCTRL.MCLKCTRLB, 0);	// no prescaler => clk = 20MHz
 
-AD9833 AD( AD9833_FNC, AD9833_DAT, AD9833_CLK);
-RotaryEncoder encoder( ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, RotaryEncoder::LatchMode::TWO03);
+  pinMode( ENC_PIN_DT, INPUT_PULLUP);
+  pinMode( ENC_PIN_SW, INPUT_PULLUP);
+  pinMode( LEFT_BUTTON, INPUT_PULLUP);
+  pinMode( RIGHT_BUTTON, INPUT_PULLUP);
+  pinMode( ENC_BUTTON, INPUT_PULLUP);
+  attachInterrupt( ENC_PIN_DT, isr_encoder, CHANGE);
+  attachInterrupt( ENC_PIN_SW, isr_encoder, CHANGE);
 
-void setup(){
-  #ifdef DEBUG_
-    Serial.begin(115200);
-  #endif
-  delay(400); // wait for the display to init
-  PRINTD("Starting!");
-
-	pinMode( ROTARY_ENCODER_BTN_PIN, INPUT_PULLUP);
-	pinMode( LEFT_BTN, INPUT_PULLUP);
-	pinMode( RIGHT_BTN, INPUT_PULLUP);
-	pinMode( WV_TYPE_BTN, INPUT_PULLUP);
-  pinMode( LED_BRD, OUTPUT);
-	attachInterrupt( ROTARY_ENCODER_BTN_PIN, encoder_BTN_ISR, FALLING);
-	attachInterrupt( ROTARY_ENCODER_A_PIN, encoder_checkPosition_ISR, FALLING);
-	attachInterrupt( ROTARY_ENCODER_B_PIN, encoder_checkPosition_ISR, FALLING);
-	attachInterrupt( LEFT_BTN, left_btn_ISR, FALLING);
-	attachInterrupt( RIGHT_BTN, right_btn_ISR, FALLING);
-	attachInterrupt( WV_TYPE_BTN, vw_type_btn_ISR, FALLING);
-
-  digitalWrite( LED_BRD, LOW);
-
-  AD.begin();
-  AD.setFrequency( freq);
-  AD.setWave( wave_type);
-
-  tft.init();
   delay(100);
-  tft.setRotation(1);  // portrait
-  tft.invertDisplay( true);
-  tft.fillScreen( GRAYCLEAR);
-  // 320x170
-  // 10 + 300 + 10 = 320 wide
-  // 10 + 70 + 10 + 70 + 10 = 170 high
-  spr.createSprite( 300, 70);
-  spr.fillSprite( GRAYCLEAR);
-
-  display_freq( freq, sweep_digit);
-  display_wave_type( wave_type);
+  u8g2.begin();
+  AD.begin();
+  delay(100);
 }
 
-void adjust_sweep_digit(){
-  uint8_t digits = floor(log10( freq)) + 1;
-  if(( freq >= 1000*1000 && sweep_digit < 4) || sweep_digit < 1 ){
-    sweep_digit = digits;
-    return;
+uint8_t wave_type = AD.MODE_SINE;
+extern bool enc_button_pressed;
+long freq = 1000;
+extern int8_t enc_cnt;
+extern uint8_t digit_inc;
+bool flip = false;
+long flip_prev = 0;
+
+extern char freq_val[12]; 
+extern char freq_unit[6];
+extern uint8_t flip_char;
+bool refresh_display = false;
+
+void handle_freq()
+{
+  if( power_values[digit_inc] > freq){
+    freq += power_values[digit_inc];
   }
-  if( sweep_digit > digits) sweep_digit = 1;
-  if( freq >= 1000*1000 && sweep_digit < 4) sweep_digit = 4;
-}
-
-int s = 0;
-int encoder_pos = 0;
-void loop(){
-  static uint32_t wave_type_btn_last_time_pressed = 0;
-  static uint32_t freq_range_btn_last_time_pressed = 0;
-  int encoder_direction = 0;
   
-  int newPos = encoder.getPosition();
-  if ( encoder_pos != newPos) {
-    encoder_direction = (int )encoder.getDirection();
-    encoder_pos = newPos;
-  }
-
-  static uint32_t last_encoder_direction = 0;
-  if( encoder_direction &&
-      millis() - last_encoder_direction > 100 && 
-      (freq < 50*1000*1000 || encoder_direction < 0))
-  {
-    PRINTD2("encoder_direction:", encoder_direction);
-    last_encoder_direction = millis();
-    uint32_t step = (( pow( 10, ( sweep_digit - 1))) * encoder_direction);
-    freq -= step; //TODO: improve step down
-    if( freq < 1){
-      freq = 1;
-      sweep_digit = 1;
-    }
-    adjust_sweep_digit();
-    display_freq( freq, sweep_digit);
-    AD.setFrequency( freq);
-    // PRINTD2( "freq:", freq);
-  }
-
-  if( encoder_btn_pressed()){
-    PRINTD("encoder_btn_pressed!");
-    if( millis() - freq_range_btn_last_time_pressed > 300){
-      freq_range_btn_last_time_pressed = millis();
-      if( freq < 1000000) freq *= 10;
-      else freq = 10;
-      adjust_sweep_digit();
-      display_freq( freq, sweep_digit);
-      AD.setFrequency( freq);
-      PRINTD2( "freq:", freq);
-    }
-  }
-
-  if( left_btn_pressed){
-    PRINTD("left_btn_pressed!");
-    sweep_digit++;
-    adjust_sweep_digit();
-    display_freq( freq, sweep_digit);
-    left_btn_pressed = false;
-    PRINTD2( "sweep_digit:", sweep_digit);
-  }
-
-  if( right_btn_pressed){
-    PRINTD("right_btn_pressed!");
-    sweep_digit--;
-    adjust_sweep_digit();
-    display_freq( freq, sweep_digit);
-    right_btn_pressed = false;
-    PRINTD2( "sweep_digit:", sweep_digit);
-  }
-
-  if( vw_type_btn_pressed){
-    PRINTD("wave_type_btn_pressed!");
-    if( millis() - wave_type_btn_last_time_pressed > 300){
-      wave_type_btn_last_time_pressed = millis();
-      wave_type += 1;
-      if( wave_type > 4) wave_type = 1;
-      display_wave_type( wave_type);
-      AD.setWave( wave_type);
-      PRINTD2( "wave_type:", wave_type);
-    }
-    vw_type_btn_pressed = false;
-  }
-
+  freq += enc_cnt * power_values[digit_inc];
+  enc_cnt = 0;
+  if( freq < 1) freq = 1;
+  if( freq > 10000000) freq = 10000000;
+  
+  if( freq < 1000 && digit_inc > 2) digit_inc = 2;
+  else if( freq < 10000 && digit_inc > 3) digit_inc = 3;
+  else if( freq < 100000 && digit_inc > 4) digit_inc = 4;
+  else if( freq < 1000000 && digit_inc > 5) digit_inc = 5;
+  
+  if( freq > 1000000 && digit_inc < 3) digit_inc = 3;
 }
+
+void loop () 
+{
+  static long prev_freq = 0;
+  refresh_display = handle_buttons(); // true is some button was pressed
+  handle_freq();
+  if( enc_button_pressed) {
+    wave_type++;
+    if( wave_type > AD.MODE_TRIANGLE) wave_type = AD.MODE_SINE;
+    enc_button_pressed = false;
+    AD.setMode(( MD_AD9833::mode_t )wave_type);
+    refresh_display = true;
+  }
+
+  if( freq != prev_freq) {
+    AD.setFrequency( MD_AD9833::CHAN_0, freq);
+    prev_freq = freq;
+    refresh_display = true;
+  }
+
+  format_freq( freq, digit_inc);
+  if( refresh_display || (millis() - flip_prev > 500)) {
+    flip = !flip;
+    flip_prev = millis();
+    refresh_display = true;
+  } 
+  if( flip) {
+    freq_val[ flip_char] = ' ';
+  } 
+
+  if( refresh_display) {
+    u8g2.clearBuffer();
+    // u8g2.setFont( u8g2_font_spleen16x32_mu);
+    u8g2.setFont( u8g2_font_profont29_mn);
+    u8g2.drawStr( 7, 25, freq_val);
+    u8g2.setFont( u8g2_font_helvB14_tr);
+    u8g2.drawStr( 80, 54, freq_unit);
+
+    char msg[12];
+    snprintf( msg, sizeof( msg), " %s", wave_type_str[wave_type-1]);
+    u8g2.drawStr(0,54, msg);
+    u8g2.sendBuffer();
+    refresh_display = false;
+  }
+}
+
+
+
+
+
 
