@@ -1,48 +1,47 @@
-#include <Arduino.h>
-#include "encoder.h"
+#include "common.h"
 
 volatile int8_t enc_cnt;
-uint8_t state = 0;
 void isr_encoder(){
+  static uint8_t state_ = 0;
   bool sw_state = digitalRead( ENC_PIN_DT);
   bool dt_state = digitalRead( ENC_PIN_SW);
-      switch (state) {
+      switch (state_) {
         case 0:
             if (!sw_state){
-                state = 1;
+                state_ = 1;
             } else if (!dt_state) {
-                state = 4;
+                state_ = 4;
             }
             break;
         case 1:                     
             if (!dt_state) {
-                state = 2;
+                state_ = 2;
             } 
             break;
         case 2:
             if (sw_state) {
-                state = 3;
+                state_ = 3;
             }
             break;
         case 3:
             if (sw_state && dt_state) {
-                state = 0;
+                state_ = 0;
                 ++enc_cnt;
             }
             break;
         case 4:
             if (!sw_state) {
-                state = 5;
+                state_ = 5;
             }
             break;
         case 5:
             if (dt_state) {
-                state = 6;
+                state_ = 6;
             }
             break;
         case 6:
             if (sw_state && dt_state) {
-                state = 0;
+                state_ = 0;
                 --enc_cnt;
             }
             break; 

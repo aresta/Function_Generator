@@ -1,15 +1,15 @@
-#include <Arduino.h>
-#include "buttons.h"
+#include "common.h"
 
-uint8_t digit_inc = 3; // from right to left
-bool enc_button_pressed = false;
+extern uint8_t digit_inc; // from right to left
+extern bool enc_btn_pressed;
+extern bool left_btn_pressed;
+extern bool rigth_btn_pressed;
 
-bool handle_buttons() 
+void handle_buttons() 
 {
-    static unsigned long lastDebounceTimeLeft = 0;
-    static unsigned long lastDebounceTimeRight = 0;
-    const unsigned long debounceDelay = 200;
-    bool pressed = false;
+    static uint32_t lastDebounceTimeLeft = 0;
+    static uint32_t lastDebounceTimeRight = 0;
+    const uint32_t debounceDelay = 200;
 
     int8_t left_button_state = digitalRead( LEFT_BUTTON);
     int8_t right_button_state = digitalRead( RIGHT_BUTTON);
@@ -17,26 +17,22 @@ bool handle_buttons()
 
     if ( left_button_state == LOW) {
         if ((millis() - lastDebounceTimeLeft) > debounceDelay) {
-            if (digit_inc < 6) digit_inc++;
             lastDebounceTimeLeft = millis();
-            pressed = true;
+            left_btn_pressed = true;
         }
     }
 
     if ( right_button_state == LOW) {
         if ((millis() - lastDebounceTimeRight) > debounceDelay) {
-            if (digit_inc > 0) digit_inc--;
             lastDebounceTimeRight = millis();
-            pressed = true;
+            rigth_btn_pressed = true;
         }
     }
 
     if ( enc_button_state == LOW) {
         if ((millis() - lastDebounceTimeRight) > debounceDelay) {
-            enc_button_pressed = true;
+            enc_btn_pressed = true;
             lastDebounceTimeRight = millis();
-            pressed = true;
         }
     }
-    return pressed;
 }
